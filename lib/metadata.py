@@ -2,33 +2,36 @@ import os
 import json
 
 from PIL import Image
-from PIL.ExifTags import TAGS
+from PIL.TiffImagePlugin import IFDRational
+from PIL.ExifTags import TAGS, GPSTAGS
+
 
 def extract_metadata(image_file_path: str) -> dict:
     try:
         image = Image.open(image_file_path)
     except IOError:
-        # make sure to log this error later to a logger file
-        raise Exception(IOError)
+        raise
 
     exif = {}
     try:
         for tag, value in image._getexif().items():
-            try:
-                value = value.decode('utf-8')
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            value = str(value)
-
             if tag in TAGS:
+                # tags are stored as numbers
+                # convert them to strings
                 exif[TAGS[tag]] = value
-
-
     except AttributeError:
-        # no exif data
-        exif = {}
+        # empty exif data
+        return exif
+
+    try:
+        gpsinfo = {}
+        for key in exif['GPSInfo'].keys():
+            key_str = GPSTAGS.get(key, key)
+            value = exif['GPSInfo'][key]
+            gpsinfo[key_str] = value
+        exif['GPSInfo'] = gpsinfo
+    except KeyError:
+        # pass if there is no gpsinfo
+        pass
 
     return exif
-
-# extract_metadata('../data/reel.jpg')
