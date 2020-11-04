@@ -1,4 +1,5 @@
 .vscode/
-mongodata/
+mongodata/*
+!.gitkeep
 
 __pycache__/
