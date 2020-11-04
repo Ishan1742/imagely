@@ -1,2 +1,4 @@
 .vscode/
 mongodata/
+
+__pycache__/

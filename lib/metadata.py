@@ -6,9 +6,9 @@ from PIL.TiffImagePlugin import IFDRational
 from PIL.ExifTags import TAGS, GPSTAGS
 
 
-def extract_metadata(image_file_path: str) -> dict:
+def extract_metadata(image) -> dict:
     try:
-        image = Image.open(image_file_path)
+        image = Image.open(image)
     except IOError:
         raise
 
