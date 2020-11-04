@@ -1,16 +1,17 @@
 import os
 import json
 import secrets
+from bson import ObjectId
 
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request, session, send_from_directory
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from pymongo import errors
 from datetime import datetime
+from PIL import Image
 
 import lib.metadata as metadata_utils
-import lib.upload as upload_utils
 from lib.encoder import CustomEncoder
 
 
@@ -98,12 +99,14 @@ def upload_image():
         else:
             mongo_res = mongo.db.metadata.insert_one(
                 {
-                    'metadata': json.loads(json.dumps(metadata_utils.extract_metadata(image), cls=CustomEncoder))
+                    'metadata': json.loads(json.dumps(metadata_utils.extract_metadata(image), cls=CustomEncoder)),
+                    'extension': f_ext
                 }
             )
             object_id = mongo_res.inserted_id
             unique_filename = str(object_id) + f_ext
             image_path = os.path.join(app.root_path, 'static', unique_filename)
+            image = Image.open(image)
             image.save(image_path)
             mongo.db.users.update_one(
                 filter={
@@ -117,33 +120,81 @@ def upload_image():
             )
             return jsonify({'msg': f'uploaded image {image.filename}'})
 
-            # random_str = ''
-            # while(True):
-            #     random_str = secrets.token_urlsafe(16)
-            #     if mongo.db.files.find_one({'_id': random_str}):
-            #         continue
-            #     break
-            # mongo.db.files.insert_one({'_id': random_str})
-            # unique_filename = random_str + f_ext
-            # image_path = os.path.join(app.root_path, 'static', unique_filename)
-            # image.save(image_path)
-            # mongo.db.users.update_one(
-            #     filter={
-            #         '_id': session['email']
-            #     },
-            #     update={
-            #         '$addToSet': {
-            #             'images': unique_filename
-            #         }
-            #     }
-            # )
-            # mongo.db.metadata.insert_one(
-            #     {
-            #         '_id': unique_filename,
-            #         'metadata': json.loads(json.dumps(metadata_utils.extract_metadata(image), cls=CustomEncoder))
-            #     }
-            # )
-            # return jsonify({'msg': f'uploaded image {image.filename}'})
+
+@app.route('/view/images/<email>')
+def view_images(email):
+    user = mongo.db.users.find_one({'_id': email})
+    if len(list(user['images'])) != 0:
+        file_list = []
+        for filename in user['images']:
+            file_id, _ = os.path.splitext(filename)
+            metadata = mongo.db.metadata.find_one({'_id': ObjectId(file_id)})
+            file_dict = {'filename': filename, 'metadata': metadata['metadata']}
+            file_list.append(file_dict)
+        return jsonify(file_list)
+    else:
+        return jsonify({'msg': 'no images uploaded'})
+
+@app.route('/view/image/<filename>')
+def view_image(filename):
+    return send_from_directory(os.path.join(app.root_path, 'static'), filename, mimetype='image')
+
+@app.route('/search', methods=['POST'])
+def search_image():
+    if request.method == 'POST':
+        meta_key = request.form.get('meta_key')
+        meta_comp = request.form.get('meta_comp')
+        meta_val = request.form.get('meta_val')
+
+        query_map = {
+            '==': '$eq',
+            '>': '$gt',
+            '>=': '$gte',
+            '<': '$lt',
+            '<=': '$lte',
+            '!=': '$ne'
+        }
+
+        meta_comp = query_map[meta_comp]
+        try:
+            meta_val = float(meta_val)
+        except ValueError:
+            pass
+        cursor = mongo.db.metadata.find({f'metadata.{meta_key}': {meta_comp: meta_val}})
+        file_list = []
+        for file in cursor:
+            file_list.append(str(file['_id']) + file['extension'])
+        return jsonify(file_list)
+
+@app.route('/delete/image/<filename>', methods=['DELETE'])
+def delete_image(filename):
+    user = mongo.db.users.find_one({'images': filename})
+    if user:
+        if session['email'] == user['_id'] or session['email'] == 'admin@imagely.com':
+            os.remove(os.path.join(app.root_path, 'static', filename))
+            file_id, _ = os.path.splitext(filename)
+            mongo.db.users.update_one(
+                filter={
+                    '_id': session['email']
+                },
+                update={
+                    '$pull': {
+                        'images': filename
+                    }
+                }
+            )
+            mongo.db.metadata.remove({'_id': ObjectId(file_id)})
+            return jsonify({
+                'msg': f'image {filename} is deleted'
+            })
+        else:
+            return jsonify({
+                'msg': f'not authorized'
+            }), 401
+    else:
+        return jsonify({
+            'msg': f'image {filename} not found'
+        })
 
 
 if __name__ == '__main__':
