@@ -95,15 +95,20 @@ def login():
 def logout():
     if 'email' in session:
         session.pop('email', default=None)
-        return jsonify({'msg': 'successfully logged out'})
+        return redirect('/')
     else:
-        return jsonify({'msg': 'no user logged in'})
+        return redirect('/login')
 
 @app.route('/home')
 def home():
-    return render_template('home.html')
+    if 'email' not in session:
+        return redirect('/login')
+    admin = False
+    if session['email'] == 'admin@imagely.com':
+        admin = True
+    return render_template('home.html', admin=admin)
 
-@app.route('/upload/image', methods=['POST'])
+@app.route('/upload/image', methods=['GET', 'POST'])
 def upload_image():
     if request.method == 'POST':
         image = request.files['image']
@@ -136,6 +141,10 @@ def upload_image():
                 }
             )
             return jsonify({'msg': f'uploaded image {image.filename}'})
+    if request.method == 'GET':
+        if 'email' not in session:
+            return redirect('/')
+        return render_template('upload.html')
 
 
 @app.route('/view/images/<email>')
