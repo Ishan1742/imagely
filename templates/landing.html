@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %} Imagely {% endblock %}
+
+{% block head %}
+<style>
+    body,
+    html {
+        height: 100%;
+    }
+
+    .bg {
+        background-image: url(public/landing.jpg);
+        height: 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    .caption {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        text-align: center;
+        color: #000;
+    }
+
+    .caption span.border {
+        background-color: #111;
+        color: #fff;
+        padding: 18px;
+        font-size: 25px;
+        letter-spacing: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-dark bg-dark">
+    <a class="navbar-brand" href="{{ url_for('landing') }}">Imagely</a>
+    <form class="form-inline justify-content-end my-2 my-lg-0">
+        <a class="btn btn-outline-success mr-sm-2" type="login" href="{{ url_for('login') }}">Login</a>
+        <a class="btn btn-success my-2 my-sm-0" type="register" href="{{ url_for('register') }}">Register</a>
+    </form>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="bg">
+    <div class="caption">
+        <span class="border">IMAGELY</span><br><br><br>
+        <span class="border">Image Management System</span>
+    </div>
+</div>
+{% endblock %}

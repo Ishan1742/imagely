@@ -3,7 +3,7 @@ import json
 import secrets
 from bson import ObjectId
 
-from flask import Flask, jsonify, request, session, send_from_directory
+from flask import Flask, jsonify, request, session, send_from_directory, render_template, redirect
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
@@ -26,8 +26,18 @@ cors = CORS(app)
 app.secret_key = app.config['SECRET_KEY']
 app.json_encoder = CustomEncoder
 
+@app.route('/')
+def landing():
+    if 'email' in session:
+        return redirect('/home')
+    else:
+        return render_template('landing.html')
 
-@app.route('/register', methods=['POST'])
+@app.route('/public/<filename>')
+def send_file(filename):
+    return send_from_directory(os.path.join(app.root_path, 'public'), filename)
+
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         name = request.form.get('name')
@@ -47,12 +57,16 @@ def register():
         try:
             mongo.db.users.insert_one(user_dict)
         except errors.DuplicateKeyError:
-            return jsonify({'msg': 'User already registerd'})
+            return redirect('/login')
 
-        return jsonify({'msg': f'registered user {name}'}), 201
+        return render_template('register.html', success='User registered successfully. Login.')
+    if request.method == 'GET':
+        if 'email' in session:
+            return redirect('/home')
+        return render_template('register.html')
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -60,22 +74,22 @@ def login():
         cursor = mongo.db.users.find_one({'_id': email})
         try:
             if 'email' in session:
-                return jsonify({'msg': f'user {email} is already logged in'})
+                return redirect('/home')
         except KeyError:
             pass
 
         if cursor != None:
             if bcrypt.check_password_hash(cursor['password'], password):
                 session['email'] = email
-                return jsonify({
-                    'msg': f'login {cursor["name"]} successful',
-                    'email': cursor['_id']
-                })
+                return redirect('/home')
             else:
-                return jsonify({'msg': 'incorrect password'})
+                return render_template('login.html', error='Incorrect Authentication Details')
         else:
-            return jsonify({'msg': f'user {email} not found'}), 404
-
+            return render_template('login.html', error='Email Not Found. Register User')
+    elif request.method == 'GET':
+        if 'email' in session:
+            return redirect('/home')
+        return render_template('login.html')
 
 @app.route('/logout')
 def logout():
@@ -85,6 +99,9 @@ def logout():
     else:
         return jsonify({'msg': 'no user logged in'})
 
+@app.route('/home')
+def home():
+    return render_template('home.html')
 
 @app.route('/upload/image', methods=['POST'])
 def upload_image():
