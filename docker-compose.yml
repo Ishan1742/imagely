@@ -1,0 +1,25 @@
+version: "3"
+services:
+    app:
+        build: .
+        container_name: serverapp
+        restart: unless-stopped
+        environment:
+            APP_DEBUG: "True"
+            APP_PORT: 5000
+        ports:
+            - '5000:5000'
+        external_links:
+            - mongodb
+        depends_on:
+            - mongodb
+
+    mongodb:
+        container_name: mongodb
+        image: mongo:4.4
+        ports:
+            - '5200:27017'
+        environment:
+            MONGO_INITDB_DATABASE: imagedb
+        volumes:
+          - ~/Projects/imagely/mongodata:/data/db

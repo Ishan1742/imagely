@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %} Imagely {% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link href="https://fonts.googleapis.com/css?family=Droid+Sans:400,700" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.8.1/baguetteBox.min.css">
+<style>
+    body {
+        background-color: #343a40;
+        font: normal 16px sans-serif;
+    }
+
+    .gallery-container h1 {
+        text-align: center;
+        margin-top: 70px;
+        font-family: 'Droid Sans', sans-serif;
+        font-weight: bold;
+        color: #fff;
+    }
+
+    .gallery-container p.page-description {
+        text-align: center;
+        margin: 30px auto;
+        font-size: 18px;
+        color: #85878c;
+    }
+
+    /* Styles for the gallery */
+
+    .tz-gallery {
+        padding: 40px;
+    }
+
+    .tz-gallery .thumbnail {
+        padding: 0;
+        margin-bottom: 30px;
+        border: none;
+    }
+
+    .tz-gallery img {
+        border-radius: 2px;
+    }
+
+    .tz-gallery .caption {
+        padding: 26px 30px;
+        text-align: center;
+        overflow-y: auto;
+    }
+
+    .tz-gallery .caption h3 {
+        font-size: 14px;
+        font-weight: bold;
+        margin-top: 0;
+    }
+
+    .tz-gallery .caption p {
+        font-size: 12px;
+        color: #7b7d7d;
+        margin: 0;
+        overflow-y: auto;
+    }
+
+    .baguetteBox-button {
+        background-color: transparent !important;
+    }
+</style>
+
+{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{{ url_for('landing') }}">Imagely</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item ">
+                <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_images') }}">My Photos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('upload_image') }}">Upload</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('search_image') }}">Search</a>
+            </li>
+            {% if admin %}
+            <li class="nav-item">
+                <a class="nav-link" href="#">Users</a>
+            </li>
+            {% endif %}
+        </ul>
+        <form class="form-inline my-2 my-lg-0 justify-content-end" action="{{ url_for('logout') }}" method='GET'>
+            <button class="btn btn-lg btn-success my-2 my-sm-0" type="submit">Logout</button>
+        </form>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container gallery-container">
+    <h1>Search All Images</h1>
+    <form action="/search" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="meta_key" class="text-light">Metadata Key</label>
+            <input type="text" class="form-control" id="meta_key" name="meta_key" placeholder="Enter Metadata Key">
+        </div>
+        <div class="form-group">
+            <label for="meta_comp" class="text-light">Metadata Comparator</label>
+            <select class="form-control" id="meta_comp" name="meta_comp" aria-placeholder="Choose comparator">
+                <option value="==">==</option>
+                <option value="<"><</option>
+                <option value=">">></option>
+                <option value="<="><=</option>
+                <option value=">=">>=</option>
+                <option value="!=">!=</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="meta_val" class="text-light">Metadata Value</label>
+            <input type="text" class="form-control" id="meta_val" name="meta_val" placeholder="Enter Metadata Value">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+    </form>
+    <div class="tz-gallery">
+
+        {% if alert %}
+        <div class="alert alert-success">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            <strong>No images found.</strong>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            {% for file in data %}
+            <div class="col-sm-6 col-md-4">
+                <div class="thumbnail">
+                    <a class="lightbox" href="static/{{ file['file'] }}">
+                        <img src="static/{{ file['file'] }}" alt="Image">
+                    </a>
+                    <div class="overflow-auto text-wrap caption" style="max-width: 500px; max-height: 300px;">
+                        <h3>Metadata: </h3>
+                        <p class="text-left">
+                            {% for data in file['metadata'] %}
+                            <strong>{{ data }}</strong>: {{ file['metadata'][data] }}<br>
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.8.1/baguetteBox.min.js"></script>
+<script>
+    baguetteBox.run('.tz-gallery');
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+.vscode/
+mongodata/*
+static/*
+
+!.gitkeep
+
+__pycache__/
