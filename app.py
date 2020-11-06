@@ -17,7 +17,7 @@ from lib.encoder import CustomEncoder
 
 app = Flask(__name__)
 
-app.config['MONGO_URI'] = 'mongodb://localhost:5200/imagedb'
+app.config['MONGO_URI'] = 'mongodb://mongodb:27017/imagedb'
 app.config['SECRET_KEY'] = b'606c367f499e04db'
 
 mongo = PyMongo(app)
