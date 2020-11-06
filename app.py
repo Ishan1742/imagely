@@ -121,9 +121,7 @@ def upload_image():
         _, f_ext = os.path.splitext(image.filename)
         allowed_f_ext = ['.jpg', '.jpeg', '.JPG', '.JPEG']
         if f_ext not in allowed_f_ext:
-            return jsonify({
-                'msg': f'{image.filename} is not valid image'
-            })
+            return render_template('upload.html', alert=True)
         else:
             mongo_res = mongo.db.metadata.insert_one(
                 {
@@ -200,6 +198,8 @@ def search_image():
         file_list = []
         for file in cursor:
             file_list.append({'file': (str(file['_id']) + file['extension']), 'metadata': file['metadata']})
+        if file_list == []:
+            return render_template('search.html', data=file_list, alert=True)
         return render_template('search.html', data=file_list)
     else:
         return render_template('search.html')
