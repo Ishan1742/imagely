@@ -175,7 +175,7 @@ def view_images():
 def view_image(filename):
     return send_from_directory(os.path.join(app.root_path, 'static'), filename, mimetype='image')
 
-@app.route('/search', methods=['POST'])
+@app.route('/search', methods=['GET', 'POST'])
 def search_image():
     if request.method == 'POST':
         meta_key = request.form.get('meta_key')
@@ -199,8 +199,10 @@ def search_image():
         cursor = mongo.db.metadata.find({f'metadata.{meta_key}': {meta_comp: meta_val}})
         file_list = []
         for file in cursor:
-            file_list.append(str(file['_id']) + file['extension'])
-        return jsonify(file_list)
+            file_list.append({'file': (str(file['_id']) + file['extension']), 'metadata': file['metadata']})
+        return render_template('search.html', data=file_list)
+    else:
+        return render_template('search.html')
 
 @app.route('/delete/image/<filename>', methods=['DELETE'])
 def delete_image(filename):

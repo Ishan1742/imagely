@@ -8,7 +8,6 @@
 <style>
     body {
         background-color: #343a40;
-        background-image: linear-gradient(147deg, #343a40 0%, #6c757d 100%);
         font: normal 16px sans-serif;
     }
 
@@ -79,28 +78,16 @@
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-            {% if mine %}
-            <li class="nav-item">
+            <li class="nav-item ">
                 <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
             </li>
-            {% else %}
-            <li class="nav-item active">
-                <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
-            </li>
-            {% endif %}
-            {% if mine %}
-            <li class="nav-item active">
-                <a class="nav-link" href="{{ url_for('view_images') }}">My Photos</a>
-            </li>
-            {% else %}
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('view_images') }}">My Photos</a>
             </li>
-            {% endif %}
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('upload_image') }}">Upload</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a class="nav-link" href="{{ url_for('search_image') }}">Search</a>
             </li>
             {% if admin %}
@@ -118,18 +105,37 @@
 
 {% block content %}
 <div class="container gallery-container">
-
-    {% if mine %}
-    <h1>My Images</h1>
-    {% else %}
-    <h1>All Images</h1>
-    {% endif %}
+    <h1>Search All Images</h1>
+    <form action="/search" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="meta_key" class="text-light">Metadata Key</label>
+            <input type="text" class="form-control" id="meta_key" name="meta_key" placeholder="Enter Metadata Key">
+        </div>
+        <div class="form-group">
+            <label for="meta_comp" class="text-light">Metadata Comparator</label>
+            <select class="form-control" id="meta_comp" name="meta_comp" aria-placeholder="Choose comparator">
+                <option value="==">==</option>
+                <option value="<"><</option>
+                <option value=">">></option>
+                <option value="<="><=</option>
+                <option value=">=">>=</option>
+                <option value="!=">!=</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="meta_val" class="text-light">Metadata Value</label>
+            <input type="text" class="form-control" id="meta_val" name="meta_val" placeholder="Enter Metadata Value">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+    </form>
     <div class="tz-gallery">
 
         {% if alert %}
         <div class="alert alert-success">
             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-            <strong>No images uploaded.</strong>
+            <strong>No images found.</strong>
         </div>
         {% endif %}
 
@@ -137,9 +143,8 @@
             {% for file in data %}
             <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
-                    {% if mine %}
-                    <a class="lightbox" href="static/{{ file['_id'] + file['extension'] }}">
-                        <img src="static/{{ file['_id'] + file['extension'] }}" alt="Image">
+                    <a class="lightbox" href="static/{{ file['file'] }}">
+                        <img src="static/{{ file['file'] }}" alt="Image">
                     </a>
                     <div class="overflow-auto text-wrap caption" style="max-width: 500px; max-height: 300px;">
                         <h3>Metadata: </h3>
@@ -149,19 +154,6 @@
                             {% endfor %}
                         </p>
                     </div>
-                    {% else %}
-                    <a class="lightbox" href="static/{{ file['_id'] + file['extension'] }}">
-                        <img src="static/{{ file['_id'] + file['extension'] }}" alt="Image">
-                    </a>
-                    <div class="overflow-auto text-wrap caption" style="max-width: 500px; max-height: 300px;">
-                        <h3>Metadata: </h3>
-                        <p class="text-left">
-                            {% for data in file['metadata'] %}
-                            <strong>{{ data }}</strong>: {{ file['metadata'][data] }}<br>
-                            {% endfor %}
-                        </p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
