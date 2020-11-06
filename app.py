@@ -153,21 +153,25 @@ def upload_image():
         return render_template('upload.html')
 
 
-@app.route('/view/images/<email>')
-def view_images(email):
-    user = mongo.db.users.find_one({'_id': email})
-    if len(list(user['images'])) != 0:
-        file_list = []
-        for filename in user['images']:
-            file_id, _ = os.path.splitext(filename)
-            metadata = mongo.db.metadata.find_one({'_id': ObjectId(file_id)})
-            file_dict = {'filename': filename, 'metadata': metadata['metadata']}
-            file_list.append(file_dict)
-        return jsonify(file_list)
+@app.route('/view/images/')
+def view_images():
+    if 'email' in session:
+        user = mongo.db.users.find_one({'_id': session['email']})
+        if len(list(user['images'])) != 0:
+            file_list = []
+            for filename in user['images']:
+                file_id, _ = os.path.splitext(filename)
+                metadata = mongo.db.metadata.find_one({'_id': ObjectId(file_id)})
+                file_dict = {'_id': file_id, 'metadata': metadata['metadata'], 'extension': metadata['extension']}
+                file_list.append(file_dict)
+            return render_template('home.html', mine=True, data=file_list)
+        else:
+            file_list = []
+            return render_template('home.html', mine=True, data=file_list, alert=True)
     else:
-        return jsonify({'msg': 'no images uploaded'})
+        return redirect('/login')
 
-@app.route('/view/image/<filename>')
+@app.route('/view/images/static/<filename>')
 def view_image(filename):
     return send_from_directory(os.path.join(app.root_path, 'static'), filename, mimetype='image')
 

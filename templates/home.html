@@ -79,12 +79,24 @@
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
+            {% if mine %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
+            </li>
+            {% else %}
             <li class="nav-item active">
                 <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">My Photos</a>
+            {% endif %}
+            {% if mine %}
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('view_images') }}">My Photos</a>
             </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_images') }}">My Photos</a>
+            </li>
+            {% endif %}
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('upload_image') }}">Upload</a>
             </li>
@@ -107,25 +119,49 @@
 {% block content %}
 <div class="container gallery-container">
 
+    {% if mine %}
+    <h1>My Images</h1>
+    {% else %}
     <h1>All Images</h1>
-
+    {% endif %}
     <div class="tz-gallery">
+
+        {% if alert %}
+        <div class="alert alert-success">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            <strong>No images uploaded.</strong>
+        </div>
+        {% endif %}
 
         <div class="row">
             {% for file in data %}
             <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
+                    {% if mine %}
                     <a class="lightbox" href="static/{{ file['_id'] + file['extension'] }}">
-                        <img src="static/{{ file['_id'] + file['extension'] }}" alt="Park">
+                        <img src="static/{{ file['_id'] + file['extension'] }}" alt="Image">
                     </a>
                     <div class="overflow-auto text-wrap caption" style="max-width: 500px; max-height: 300px;">
                         <h3>Metadata: </h3>
-                        <p>
+                        <p class="text-left">
                             {% for data in file['metadata'] %}
-                                {{ data }}:  {{ file['metadata'][data] }}<br>
+                            <strong>{{ data }}</strong>: {{ file['metadata'][data] }}<br>
                             {% endfor %}
                         </p>
                     </div>
+                    {% else %}
+                    <a class="lightbox" href="static/{{ file['_id'] + file['extension'] }}">
+                        <img src="static/{{ file['_id'] + file['extension'] }}" alt="Image">
+                    </a>
+                    <div class="overflow-auto text-wrap caption" style="max-width: 500px; max-height: 300px;">
+                        <h3>Metadata: </h3>
+                        <p class="text-left">
+                            {% for data in file['metadata'] %}
+                            <strong>{{ data }}</strong>: {{ file['metadata'][data] }}<br>
+                            {% endfor %}
+                        </p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
