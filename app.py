@@ -106,7 +106,13 @@ def home():
     admin = False
     if session['email'] == 'admin@imagely.com':
         admin = True
-    return render_template('home.html', admin=admin)
+    data = []
+    cursor = mongo.db.metadata.find()
+    for file in cursor:
+        file = dict(file)
+        file['_id'] = str(file['_id'])
+        data.append(file)
+    return render_template('home.html', admin=admin, data=data)
 
 @app.route('/upload/image', methods=['GET', 'POST'])
 def upload_image():
@@ -140,7 +146,7 @@ def upload_image():
                     }
                 }
             )
-            return jsonify({'msg': f'uploaded image {image.filename}'})
+            return render_template('upload.html', success=True)
     if request.method == 'GET':
         if 'email' not in session:
             return redirect('/')

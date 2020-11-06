@@ -94,6 +94,12 @@
         <h1 class="display-4">Upload Image</h1>
         <img src="https://res.cloudinary.com/mhmd/image/upload/v1564991372/image_pxlho1.svg" alt="" width="150"
             class="mb-4">
+        {% if success %}
+        <div class="alert alert-success">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            <strong>Success!</strong> Image Uploaded.
+        </div>
+        {% endif %}
     </header>
 
 
