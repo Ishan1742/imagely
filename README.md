@@ -2,29 +2,42 @@
 A image metadata storage management system
 
 ### Installation
-git clone the package.
-
-have pipenv installed
 ```bash
-sudo pip install pipenv
+docker-compose up
 ```
 
-run in the project folder
+### Clean Build Images
 ```bash
-pipenv install
+docker-compose down
+docker-compose build --no-cache
+docker-compose up
 ```
 
-open virtualenv
+### Running in localhost
+To see your changes to the code being updated. Run the flask app from the terminal and the mongodb instance from docker.
+- Install pipenv
+```bash
+pip3 install pipenv
+```
+- Installing Requirements
+```bash
+~/imagely/$ pipenv install
+```
+
+- Running Flask App
 ```bash
 pipenv shell
+python3 app.py
 ```
 
-run server
+- Running mongodb instance
 ```bash
-python app.py
+docker-compose up mongodb
 ```
 
-hello world app should run here
+
+
+### Access
 ```
-http://localhost:5000/
+http://localhost:5000
 ```
