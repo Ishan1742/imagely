@@ -1,5 +1,5 @@
 # imagely
-A image metadata storage management system
+A image metadata storage management system, using Bootstrap, Flask, MongoDB and Docker.
 
 ### Installation
 ```bash
